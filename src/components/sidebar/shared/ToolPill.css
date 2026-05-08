@@ -1,0 +1,20 @@
+/* src/components/sidebar/shared/ToolPill.css
+   Shared pill styles imported once, used by both tab variants. */
+
+.tool-pill {
+  display:        inline-flex;
+  align-items:    center;
+  gap:            3px;
+  font-size:      11px;
+  font-weight:    500;
+  font-family:    'JetBrains Mono', monospace;
+  padding:        2px 7px;
+  border-radius:  5px;
+  letter-spacing: 0.02em;
+  white-space:    nowrap;
+  flex-shrink:    0;
+}
+
+.tool-pill__action {
+  opacity: 0.72;
+}

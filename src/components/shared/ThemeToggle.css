@@ -1,0 +1,111 @@
+/* src/components/shared/ThemeToggle.css */
+
+/* ── Wrapper (positions tooltip below button) ─────────────── */
+.theme-toggle-wrapper {
+  position: relative;
+  display:  inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+/* ── Button ───────────────────────────────────────────────── */
+.theme-toggle {
+  display:      flex;
+  align-items:  center;
+  gap:          6px;
+  padding:      6px 12px;
+
+  /* Spectral gradient border via background + background-clip trick */
+  border:       1px solid transparent;
+  background-image:
+    linear-gradient(var(--surface, rgba(20,20,28,0.75)), var(--surface, rgba(20,20,28,0.75))),
+    linear-gradient(
+      90deg,
+      rgba(255, 100, 100, 0.55),
+      rgba(100, 200, 255, 0.55),
+      rgba(150, 100, 255, 0.55),
+      rgba(255, 100, 100, 0.55)
+    );
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-size: 100%, 200% 100%;
+  animation: tt-border-drift 8s linear infinite;
+
+  border-radius:   var(--radius-full);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color:           var(--text-secondary);
+  font-family:     var(--font-ui);
+  font-size:       12px;
+  font-weight:     500;
+  cursor:          pointer;
+  white-space:     nowrap;
+  transition:      color 0.25s ease;
+}
+
+/* Slow drift of the spectral gradient around the border */
+@keyframes tt-border-drift {
+  0%   { background-position: 0 0,   0% 50%;   }
+  100% { background-position: 0 0, 200% 50%;   }
+}
+
+.theme-toggle:hover {
+  color: var(--text-primary);
+}
+
+/* Transition moment: full prismatic shimmer on the button */
+.theme-toggle--transiting {
+  animation: tt-border-drift 1.5s linear infinite,
+             tt-shimmer 0.50s ease-out;
+}
+
+@keyframes tt-shimmer {
+  0%   { filter: brightness(1)   hue-rotate(0deg);   }
+  50%  { filter: brightness(1.6) hue-rotate(180deg); }
+  100% { filter: brightness(1)   hue-rotate(360deg); }
+}
+
+
+/* ── Glyph ────────────────────────────────────────────────── */
+.theme-toggle__icon {
+  font-size:   15px;
+  line-height: 1;
+  color:       var(--accent);
+}
+
+/* Obsidian ◉ — add a subtle rim glow to reinforce the icon */
+body.obsidian .theme-toggle__icon {
+  text-shadow: 0 0 8px var(--accent);
+}
+
+
+/* ── Text label ───────────────────────────────────────────── */
+.theme-toggle__label {
+  text-transform: capitalize;
+  letter-spacing: 0.04em;
+}
+
+
+/* ── Custom tooltip ───────────────────────────────────────── */
+.theme-toggle__tooltip {
+  position:      absolute;
+  top:           calc(100% + 8px);
+  left:          50%;
+  transform:     translateX(-50%);
+  white-space:   nowrap;
+  font-family:   var(--font-ui);
+  font-size:     11px;
+  font-weight:   400;
+  letter-spacing: 0.04em;
+  color:         var(--text-secondary);
+  background:    var(--surface-elevated, rgba(30, 30, 42, 0.90));
+  border:        1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding:       4px 10px;
+  pointer-events: none;
+  z-index:       100;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:    0 4px 16px rgba(0, 0, 0, 0.25);
+}

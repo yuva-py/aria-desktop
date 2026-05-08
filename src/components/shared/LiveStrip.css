@@ -1,0 +1,57 @@
+/* src/components/shared/LiveStrip.css */
+
+.live-strip {
+  min-height:  28px;           /* reserves space so layout doesn't jump */
+  display:     flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.live-strip__text {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+
+  font-family:    var(--font-mono);
+  font-size:      11px;
+  font-weight:    300;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+  color:          var(--text-secondary);
+  max-width:      520px;
+  white-space:    nowrap;
+  overflow:       hidden;
+  text-overflow:  ellipsis;
+
+  /* Numbers don't shift width when changing (e.g. "2 of 5") */
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Phase-coloured status dot ────────────────────────────────
+   Colour + glow are applied via inline style in LiveStrip.jsx  */
+.live-strip__phase-dot {
+  position:      relative;     /* anchor for ::after sonar ring */
+  display:       inline-block;
+  width:         7px;
+  height:        7px;
+  border-radius: 50%;
+  flex-shrink:   0;
+  will-change:   transform, opacity;
+}
+
+/* ── Sonar ring — expands and fades outward every 2 s ─────── */
+.live-strip__phase-dot::after {
+  content:       '';
+  position:      absolute;
+  inset:         -3px;
+  border-radius: 50%;
+  border:        1.5px solid var(--live-dot-color, rgba(150, 100, 255, 0.6));
+  opacity:       0;
+  animation:     sonar-ring 2s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes sonar-ring {
+  0%   { transform: scale(1);   opacity: 0.45; }
+  100% { transform: scale(2.5); opacity: 0;    }
+}

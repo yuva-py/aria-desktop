@@ -1,0 +1,278 @@
+/* src/components/sidebar/tabs/LogsTab.css */
+
+/* ── Tab shell ───────────────────────────────────────────── */
+.logs-tab {
+  display:        flex;
+  flex-direction: column;
+  height:         100%;
+  padding:        16px 0 0;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.logs-tab__header {
+  display:     flex;
+  align-items: center;
+  gap:         12px;
+  padding:     0 16px 12px;
+  border-bottom:   1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom:   8px;
+  flex-shrink:     0;
+}
+
+body.crystal .logs-tab__header {
+  border-bottom-color: rgba(124, 58, 237, 0.1);
+}
+
+/* Section label with hairline rule extending right */
+.logs-tab__label {
+  font-size:      10px;
+  font-weight:    600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color:          var(--text-secondary);
+  font-family:    var(--font-ui);
+  display:        flex;
+  align-items:    center;
+  flex:           1;
+  white-space:    nowrap;
+}
+
+.logs-tab__label::after {
+  content:     '';
+  flex:        1;
+  height:      1px;
+  margin-left: 10px;
+  background:  linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    transparent              100%
+  );
+}
+
+body.crystal .logs-tab__label::after {
+  background: linear-gradient(
+    90deg,
+    rgba(124, 58, 237, 0.20) 0%,
+    transparent              100%
+  );
+}
+
+/* Live count badge — spectral gradient border trick */
+.logs-tab__count-badge {
+  position:    relative;
+  font-size:   11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color:       var(--text-primary);
+  padding:     2px 9px;
+  border-radius: 10px;
+  background:  var(--surface, rgba(20, 20, 28, 0.6));
+  /* Spectral gradient border via box-shadow layers */
+  box-shadow:
+    0 0 0 1px rgba(255, 100, 100, 0.35),
+    0 0 0 1px rgba(150, 100, 255, 0.35),
+    inset 0 0 8px rgba(150, 100, 255, 0.06);
+}
+
+/* ── Filter bar ─────────────────────────────────────────── */
+.logs-filter-bar {
+  display:     flex;
+  flex-wrap:   wrap;
+  gap:         5px;
+  padding:     0 12px 10px;
+  flex-shrink: 0;
+}
+
+.logs-filter-chip {
+  border:        none;
+  cursor:        pointer;
+  font-family:   var(--font-ui);
+  font-size:     10px;
+  font-weight:   500;
+  letter-spacing: 0.04em;
+  padding:       3px 9px;
+  border-radius: 20px;
+  color:         var(--text-secondary);
+  background:    rgba(255, 255, 255, 0.08);
+  transition:    background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  white-space:   nowrap;
+}
+
+body.crystal .logs-filter-chip {
+  background: rgba(124, 58, 237, 0.08);
+}
+
+.logs-filter-chip:hover {
+  background: rgba(255, 255, 255, 0.13);
+  color:      var(--text-primary);
+}
+
+/* Active chip: spectral gradient border */
+.logs-filter-chip--active {
+  color:      var(--text-primary);
+  background: rgba(255, 255, 255, 0.04);
+  /* Simulated gradient border with a conic-gradient box-shadow trick */
+  box-shadow:
+    0 0 0 1px rgba(255, 100, 100, 0.55),
+    0 0 0 1px rgba(150, 100, 255, 0.55),
+    0 0 10px rgba(150, 100, 255, 0.12);
+  /* Gradient ring via outline isn't possible; use background trick */
+  background-image: linear-gradient(
+    var(--surface, rgba(8,6,12,0.92)),
+    var(--surface, rgba(8,6,12,0.92))
+  ),
+  linear-gradient(
+    90deg,
+    rgba(255,100,100,0.7),
+    rgba(255,200,0,0.7),
+    rgba(100,255,200,0.7),
+    rgba(150,100,255,0.7)
+  );
+  background-clip: padding-box, border-box;
+  background-origin: padding-box, border-box;
+  border: 1px solid transparent;
+}
+
+body.crystal .logs-filter-chip--active {
+  background-image: linear-gradient(
+    rgba(245,243,255,0.88),
+    rgba(245,243,255,0.88)
+  ),
+  linear-gradient(
+    90deg,
+    rgba(255,100,100,0.7),
+    rgba(255,200,0,0.7),
+    rgba(100,255,200,0.7),
+    rgba(150,100,255,0.7)
+  );
+}
+
+/* ── Entry list ─────────────────────────────────────────── */
+.logs-tab__list {
+  flex:       1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.logs-tab__list::-webkit-scrollbar       { width: 3px; }
+.logs-tab__list::-webkit-scrollbar-track { background: transparent; }
+.logs-tab__list::-webkit-scrollbar-thumb {
+  background:    rgba(150, 100, 255, 0.3);
+  border-radius: 2px;
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.logs-tab__empty {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  padding:         48px 16px;
+  font-size:       13px;
+  color:           var(--text-secondary);
+  opacity:         0.55;
+}
+
+/* ── Individual log entry ────────────────────────────────── */
+.log-entry {
+  position:      relative;
+  padding:       10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition:    background 0.15s ease;
+  overflow:      visible;
+}
+
+/* Hover left-border slides in from the left */
+.log-entry::before {
+  content:    '';
+  position:   absolute;
+  left:       0;
+  top:        0;
+  bottom:     0;
+  width:      2px;
+  border-radius: 1px;
+  background: linear-gradient(
+    180deg,
+    var(--accent, rgba(150, 100, 255, 0.9)),
+    rgba(100, 180, 255, 0.40)
+  );
+  opacity:   0;
+  transform: translateX(-2px);
+  transition: opacity 150ms ease, transform 150ms ease;
+  pointer-events: none;
+}
+
+.log-entry:hover::before {
+  opacity:   1;
+  transform: translateX(0);
+}
+
+body.crystal .log-entry {
+  border-bottom-color: rgba(124, 58, 237, 0.08);
+}
+
+.log-entry:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+body.crystal .log-entry:hover {
+  background: rgba(124, 58, 237, 0.04);
+}
+
+.log-entry:last-child {
+  border-bottom: none;
+}
+
+/* Row 1: pill · action · timestamp */
+.log-entry__row1 {
+  display:     flex;
+  align-items: center;
+  gap:         7px;
+  margin-bottom: 4px;
+  flex-wrap:   nowrap;
+  min-width:   0;
+}
+
+.log-entry__action {
+  font-size:     12px;
+  font-weight:   500;
+  font-family:   var(--font-mono);
+  color:         var(--text-primary);
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  flex:          1;
+  min-width:     0;
+}
+
+.log-entry__time {
+  font-size:   10px;
+  font-weight: 400;
+  font-family: var(--font-mono);
+  color:       var(--text-secondary);
+  flex-shrink: 0;
+  opacity:     0.7;
+  margin-left: auto;
+}
+
+/* Row 2: status icon · summary */
+.log-entry__row2 {
+  display:     flex;
+  align-items: flex-start;
+  gap:         5px;
+}
+
+.log-entry__status-icon {
+  font-size:   10px;
+  font-weight: 700;
+  line-height: 1.6;
+  flex-shrink: 0;
+}
+
+.log-entry__summary {
+  font-size:   12px;
+  font-weight: 300;
+  font-family: var(--font-ui);
+  color:       var(--text-secondary);
+  line-height: 1.5;
+  word-break:  break-word;
+}

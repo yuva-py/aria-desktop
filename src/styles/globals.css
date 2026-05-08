@@ -1,0 +1,143 @@
+/* ============================================================
+   ARIA Theme System
+   Two themes: crystal (glass/light) and obsidian (dark/crimson)
+   Applied via class on <body>: body.crystal | body.obsidian
+   ============================================================ */
+
+/* ── Google Fonts ─────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap');
+
+/* ── Reset ────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Crystal Theme ────────────────────────────────────────── */
+/* White / frosted-glass aesthetic with soft violet accents    */
+body.crystal {
+  --bg:                 #f0f0f8;
+  --surface:            rgba(255, 255, 255, 0.55);
+  --surface-elevated:   rgba(255, 255, 255, 0.80);
+  --text-primary:       #1a1a2e;
+  --text-secondary:     rgba(26, 26, 46, 0.55);
+  --accent:             #7c3aed;            /* violet-600           */
+  --accent-hover:       #6d28d9;            /* violet-700           */
+  --spectral-primary:   #8b5cf6;            /* violet-500           */
+  --border:             rgba(139, 92, 246, 0.18);
+  --orb-ambient:        rgba(139, 92, 246, 0.12);
+  --input-bg:           rgba(255, 255, 255, 0.65);
+  --scrollbar-thumb:    rgba(139, 92, 246, 0.30);
+  --shadow:             0 8px 32px rgba(124, 58, 237, 0.12);
+}
+
+/* ── Obsidian Theme ───────────────────────────────────────── */
+/* Near-black background with deep crimson / rose accents      */
+body.obsidian {
+  --bg:                 #0b0b0f;
+  --surface:            rgba(20, 20, 28, 0.75);
+  --surface-elevated:   rgba(30, 30, 42, 0.90);
+  --text-primary:       #f1f0ff;
+  --text-secondary:     rgba(241, 240, 255, 0.45);
+  --accent:             #e11d48;            /* rose-600             */
+  --accent-hover:       #be123c;            /* rose-700             */
+  --spectral-primary:   #f43f5e;            /* rose-500             */
+  --border:             rgba(225, 29, 72, 0.20);
+  --orb-ambient:        rgba(225, 29, 72, 0.08);
+  --input-bg:           rgba(255, 255, 255, 0.06);
+  --scrollbar-thumb:    rgba(225, 29, 72, 0.35);
+  --shadow:             0 8px 32px rgba(0, 0, 0, 0.55);
+}
+
+/* ── Transparency chain ───────────────────────────────────── */
+/* Every ancestor of the canvas must be transparent with        */
+/* overflow:visible so there is no paint-clip rectangle.        */
+html,
+body,
+#root,
+.aria-app,
+.aria-ui-layer {
+  background: transparent !important;
+  /* overflow:hidden is what creates the visible box —         */
+  /* never set it on any ancestor of the canvas.               */
+}
+
+/* ── Base body styles ─────────────────────────────────────── */
+body {
+  font-family: var(--font-ui);
+  /* background is intentionally transparent (see above) */
+  color: var(--text-primary);
+  transition: color 0.35s ease;
+
+  /* Electron transparent window — never show OS scrollbars */
+  overflow: hidden;
+}
+
+/* ── Scrollbar (for inner scrollable areas) ───────────────── */
+::-webkit-scrollbar       { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 2px;
+}
+
+/* ── Focus ring ───────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Utility tokens ───────────────────────────────────────── */
+/* Re-usable animation easing */
+:root {
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --radius-sm:   6px;
+  --radius-md:   12px;
+  --radius-lg:   20px;
+  --radius-full: 9999px;
+
+  /* ── Typography tokens ──────────────────────────────────────────────── */
+  --font-ui:   'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* ── Glass surface mixin helper ───────────────────────────── */
+.glass {
+  background:    var(--surface);
+  border:        1px solid var(--border);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow:    var(--shadow);
+  border-radius: var(--radius-md);
+}
+
+/* ── Text glass-projection utilities ─────────────────────────
+   .text-projected — subtle chromatic fringe + soft white bloom
+                     for text sitting on translucent glass.
+   .text-active    — intensified fringe when the element is
+                     focused / selected (e.g. typing in CommandBar).
+   ─────────────────────────────────────────────────────────── */
+.text-projected {
+  -webkit-font-smoothing: antialiased;
+  text-shadow:
+    0 0 20px rgba(255, 255, 255, 0.08),
+    0 0 40px rgba(180, 160, 255, 0.04);
+  filter:
+    drop-shadow(0.3px  0 0 rgba(100, 200, 255, 0.25))
+    drop-shadow(-0.3px 0 0 rgba(255, 100, 150, 0.25));
+}
+
+.text-active {
+  filter:
+    drop-shadow(0.4px  0 0 rgba(0,   220, 255, 0.4))
+    drop-shadow(-0.4px 0 0 rgba(255,  80, 120, 0.2));
+}

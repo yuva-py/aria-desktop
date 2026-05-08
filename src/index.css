@@ -1,0 +1,31 @@
+/* src/index.css — minimal base reset only */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin:     0;
+  padding:    0;
+}
+
+/* Transparency chain — every ancestor must be transparent with
+   overflow:visible so the WebGL canvas can extend freely. */
+html {
+  font-size: 16px;
+  background: transparent;
+  overflow:   visible;
+}
+
+body {
+  background: transparent;
+  /* overflow:hidden only on body keeps OS scrollbars away
+     without creating a paint-clip rectangle on child elements. */
+  overflow:   hidden;
+}
+
+#root {
+  width:      100%;
+  height:     100%;
+  background: transparent;
+  overflow:   visible; /* must NOT be hidden — that creates the box */
+}

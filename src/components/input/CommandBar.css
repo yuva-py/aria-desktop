@@ -1,0 +1,483 @@
+/* src/components/input/CommandBar.css
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+   Visual states:
+     IDLE    → subtle glass pill, muted translucent border
+     FOCUS   → animated spectral gradient ring, brighter glass
+     TYPING  → phase-aware caret, chromatic text via .text-active
+     LOADING → gradient ring stays, button shows spinner
+     FLASH   → 380 ms hue-rotate + brightness sweep on submit
+
+   Phase-aware CSS variables (set via inline style in JSX):
+     --cmd-accent   main phase colour  (button bg, prompt, caret)
+     --cmd-glow     phase colour diluted  (box-shadow halo)
+     --cmd-border   phase colour semi-opaque  (focus hint on inner)
+
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
+/* ── Shell ───────────────────────────────────────────────────────── */
+.command-bar {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+
+/* ── Gradient-border wrapper ─────────────────────────────────────────
+   The ::before pseudo-element is the "paint" for the gradient ring.
+   It sits behind the glass inner pill via z-index: -1 inside an
+   isolation:isolate stacking context. 1 px of padding gap = border.   */
+.command-bar__gradient-border {
+  position:  relative;
+  border-radius: var(--radius-full);
+  isolation: isolate;
+}
+
+/* The animated spectral ring ─────────────────────────────────────── */
+.command-bar__gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+
+  /* Spectrum loops: last stop matches first so the scroll is seamless */
+  background: linear-gradient(
+    90deg,
+    rgba(255, 100, 100, 0.85),   /* red    */
+    rgba(255, 180,   0, 0.85),   /* amber  */
+    rgba( 80, 230, 120, 0.85),   /* green  */
+    rgba( 60, 200, 255, 0.85),   /* cyan   */
+    rgba(150, 100, 255, 0.85),   /* violet */
+    rgba(255, 100, 100, 0.85)    /* red — closes the loop */
+  );
+  background-size: 300% 100%;   /* 3× wider for scroll room */
+
+  /* Unfocused: ring breathes gently so the bar always feels alive */
+  opacity:    0.15;
+  animation:  cmd-ring-breathe 3.5s ease-in-out infinite;
+  transition: opacity 0.28s ease;
+  z-index:    -1;
+}
+
+/* Slow idle breathe — oscillates between 0.10 and 0.22 */
+@keyframes cmd-ring-breathe {
+  0%, 100% { opacity: 0.10; }
+  50%       { opacity: 0.22; }
+}
+
+/* Focused: override breathe → full brightness spectrum scroll */
+.command-bar__gradient-border--focused::before {
+  opacity:    1;
+  animation:  cmd-spectrum-scroll 4s linear infinite;
+  filter:     brightness(1.15);
+}
+
+/* Loading: ring stays visible but slower */
+.command-bar__gradient-border--loading::before {
+  opacity:    0.75;
+  animation:  cmd-spectrum-scroll 7s linear infinite;
+  filter:     none;
+}
+
+/* Spectrum scroll keyframes */
+@keyframes cmd-spectrum-scroll {
+  0%   { background-position: 0%   50%; }
+  100% { background-position: 100% 50%; }
+}
+
+/* Submit flash: spectral hue sweep + brightness spike */
+@keyframes cmd-flash {
+  0%   { filter: brightness(1)   hue-rotate(0deg);   }
+  45%  { filter: brightness(2.2) hue-rotate(200deg);  }
+  100% { filter: brightness(1)   hue-rotate(360deg);  }
+}
+
+.command-bar__gradient-border--flashing::before {
+  animation: cmd-flash 0.38s ease-out forwards;
+}
+
+
+/* ── Submission ripple — expands outward on submit ───────────────────
+   ::after is the ring that bursts outward when --flashing is set.     */
+.command-bar__gradient-border::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid var(--cmd-accent, rgba(255, 255, 255, 0.3));
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.command-bar__gradient-border--flashing::after {
+  animation: cmd-ripple 0.50s ease-out forwards;
+}
+
+@keyframes cmd-ripple {
+  0%   { transform: scale(1);   opacity: 0.40; }
+  100% { transform: scale(1.8); opacity: 0;    }
+}
+
+
+/* ── Glass inner pill ────────────────────────────────────────────────
+   IDLE: near-invisible glass surface
+   Breathing border: subtle opacity pulse every 3 s (idle only)       */
+@keyframes borderBreathe {
+  0%, 100% { border-color: rgba(255, 255, 255, 0.07); }
+  50%       { border-color: rgba(255, 255, 255, 0.14); }
+}
+
+.command-bar__inner {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+  padding:     10px 14px;
+  border-radius: var(--radius-full);
+
+  background:      rgba(255, 255, 255, 0.03);
+  border:          1px solid rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:      none;
+
+  /* Breathing border during idle (overridden by --focused) */
+  animation: borderBreathe 3s ease-in-out infinite;
+
+  transition:
+    background      0.28s ease,
+    border-color    0.28s ease,
+    box-shadow      0.28s ease,
+    backdrop-filter 0.28s ease;
+}
+
+/* FOCUSED: stop breathing animation, brighter glass, phase-tinted halo */
+.command-bar__inner--focused {
+  animation: none;
+  background:  rgba(255, 255, 255, 0.07);
+  border:      1px solid var(--cmd-border, rgba(255,255,255,0.14));
+  background-clip: padding-box;
+  backdrop-filter: blur(16px) brightness(1.06) saturate(1.20);
+  -webkit-backdrop-filter: blur(16px) brightness(1.06) saturate(1.20);
+  box-shadow:
+    0 0 40px var(--cmd-glow, rgba(150,200,255,0.12)),
+    0 0 14px var(--cmd-glow, rgba(150,200,255,0.06)),
+    inset 0 1px 0 rgba(255,255,255,0.09);
+}
+
+/* Crystal theme overrides */
+body.crystal .command-bar__inner {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(124, 58, 237, 0.12);
+}
+body.crystal .command-bar__inner--focused {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(124, 58, 237, 0.20);
+  box-shadow: 0 0 24px var(--cmd-glow, rgba(124,58,237,0.15));
+}
+
+
+/* ── Prompt glyph ─────────────────────────────────────────────────── */
+.command-bar__prompt {
+  font-size:   19px;
+  font-weight: 300;
+  /* Phase-aware via CSS var; falls back to static accent */
+  color:       var(--cmd-accent, var(--accent));
+  line-height: 1;
+  flex-shrink: 0;
+  user-select: none;
+  /* Subtle text glow matching the phase */
+  text-shadow: 0 0 12px var(--cmd-glow, transparent);
+  will-change: opacity, transform;
+}
+
+
+/* ── Text input ────────────────────────────────────────────────────── */
+.command-bar__input {
+  flex:        1;
+  border:      none;
+  outline:     none;
+  background:  transparent;
+  font-family: var(--font-ui);
+  font-size:   14px;
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  color:       var(--text-primary);
+
+  /* Phase-aware caret — falls back to global --accent */
+  caret-color: var(--cmd-accent, var(--accent));
+  min-width:   0;
+
+  transition:
+    caret-color 0.25s ease,
+    filter      0.2s  ease;
+}
+
+.command-bar__input::placeholder {
+  color: var(--text-secondary);
+  transition: opacity 0.2s ease;
+}
+
+/* TYPING: caret-color is already phase-aware from above;
+   .text-active (from globals) adds the chromatic fringe.
+   Placeholder fades out to reduce visual noise. */
+.command-bar__input--typing::placeholder {
+  opacity: 0;
+}
+
+.command-bar__input:disabled {
+  opacity: 0.5;
+  cursor:  not-allowed;
+}
+
+
+/* ── Submit button ─────────────────────────────────────────────────── */
+.command-bar__submit {
+  flex-shrink: 0;
+  width:       30px;
+  height:      30px;
+  border:      none;
+  border-radius: 50%;
+
+  /* Phase-aware background; falls back to static --accent */
+  background:  var(--cmd-accent, var(--accent));
+
+  /* Phase glow on the button itself */
+  box-shadow: 0 0 0 rgba(0,0,0,0);
+  color:       rgba(255, 255, 255, 0.95);
+  font-size:   11px;
+  cursor:      pointer;
+  display:     flex;
+  align-items: center;
+  justify-content: center;
+
+  transition:
+    background 0.3s ease,
+    box-shadow 0.3s ease;
+
+  /* Framer Motion handles hover/tap scale — no CSS transform here */
+  will-change: transform;
+}
+
+/* Hover: surface the phase glow */
+.command-bar__submit:not(:disabled):hover {
+  box-shadow: 0 0 16px var(--cmd-glow, rgba(150,200,255,0.3));
+}
+
+.command-bar__submit:disabled {
+  cursor: not-allowed;
+}
+
+/* Crystal: slightly darker background so button reads on light bg */
+body.crystal .command-bar__submit {
+  color: #fff;
+}
+
+
+/* ── Loading spinner ───────────────────────────────────────────────── */
+@keyframes cmd-spin {
+  to { transform: rotate(360deg); }
+}
+
+.command-bar__spinner {
+  display:       inline-block;
+  width:         12px;
+  height:        12px;
+  border:        2px solid rgba(255, 255, 255, 0.28);
+  border-top-color: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  animation:     cmd-spin 0.65s linear infinite;
+}
+
+
+/* ── Error message ─────────────────────────────────────────────────── */
+.command-bar__error {
+  font-size:    12px;
+  color:        rgba(248, 113, 113, 0.92);
+  padding-left: 16px;
+  font-family:  var(--font-mono);
+  letter-spacing: 0.01em;
+}
+
+
+/* ── Input echo — prompt shifts cyan while typing ─────────────────── */
+/* A subtle departure from the phase accent toward a neutral cyan,     */
+/* signalling "you are composing" regardless of what ARIA is doing.    */
+.command-bar__prompt--typing {
+  color: rgba(0, 210, 240, 0.90) !important;
+  transition: color 200ms ease;
+}
+
+
+/* ── Processing dots ─────────────────────────────────────────────────
+   Three phase-coloured dots (wave animation) shown when ARIA is       */
+/*   active and the user hasn't started typing.                         */
+.command-bar__processing-dots {
+  display:     flex;
+  align-items: center;
+  gap:         3px;
+  flex-shrink: 0;
+}
+
+.command-bar__processing-dots span {
+  display:       inline-block;
+  width:         4px;
+  height:        4px;
+  border-radius: 50%;
+  background:    var(--cmd-accent, var(--accent));
+  /* Duration driven by --cmd-dots-dur (written 60 fps by useAudioReactivity) */
+  animation:     cmd-dots-wave var(--cmd-dots-dur, 1.2s) ease-in-out infinite;
+}
+
+.command-bar__processing-dots span:nth-child(2) { animation-delay: 0.20s; }
+.command-bar__processing-dots span:nth-child(3) { animation-delay: 0.40s; }
+
+@keyframes cmd-dots-wave {
+  0%, 80%, 100% { transform: translateY(0);    opacity: 0.45; }
+  40%            { transform: translateY(-4px); opacity: 1.00; }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   VOICE-REACTIVITY ADDITIONS
+   ══════════════════════════════════════════════════════════════════ */
+
+
+/* ── Listening state — ring driven by mic amplitude ─────────────────
+   --mic-amplitude is written to :root at 60 fps by useAudioReactivity
+   so the ring opacity tracks the live microphone level in real time.  */
+.command-bar__gradient-border--listening::before {
+  opacity:    calc(0.30 + var(--mic-amplitude, 0) * 0.50);
+  animation:  cmd-spectrum-scroll 2s linear infinite;
+  /* Rotate the spectrum toward cyan/blue — the "listening" colour zone */
+  filter:     hue-rotate(160deg) brightness(1.12);
+}
+
+
+/* ── Mic waveform bars ───────────────────────────────────────────────
+   Three vertical bars shown inside the input pill while isListening
+   and no text has been typed.  They sit in the same left slot as the
+   processing dots (AnimatePresence swaps them).                        */
+.command-bar__mic-bars {
+  display:     flex;
+  align-items: center;
+  gap:         2.5px;
+  flex-shrink: 0;
+  height:      18px;
+}
+
+.command-bar__mic-bars span {
+  display:          block;
+  width:            2.5px;
+  border-radius:    2px;
+  background:       var(--cmd-accent, rgba(60, 200, 255, 0.90));
+  transform-origin: center;
+  /* Glow matches the phase accent (cyan-shifted while listening) */
+  box-shadow:       0 0 6px var(--cmd-glow, rgba(60, 200, 255, 0.35));
+  /* Each bar gets its own duration so they don't look in lockstep */
+  animation:        cmd-mic-wave 0.55s ease-in-out infinite;
+  height:           14px;
+}
+
+.command-bar__mic-bars span:nth-child(1) {
+  animation-delay:    0s;
+  animation-duration: 0.55s;
+}
+.command-bar__mic-bars span:nth-child(2) {
+  animation-delay:    0.12s;
+  animation-duration: 0.46s;
+}
+.command-bar__mic-bars span:nth-child(3) {
+  animation-delay:    0.24s;
+  animation-duration: 0.62s;
+}
+
+@keyframes cmd-mic-wave {
+  0%, 100% { transform: scaleY(0.22); opacity: 0.45; }
+  50%       { transform: scaleY(1.00); opacity: 1.00; }
+}
+
+
+/* ── Mic toggle button ──────────────────────────────────────────────
+   Lives between the input field and the submit button.
+   Three opacity tiers: inactive (0.30), active/enabled (0.72),
+   and listening (1.0 + pulsing glow) — controlled by Framer Motion
+   in JSX; CSS handles colour + background + shadow.                   */
+.command-bar__mic-btn {
+  flex-shrink:    0;
+  width:          30px;
+  height:         30px;
+  border:         none;
+  border-radius:  50%;
+  background:     transparent;
+  color:          var(--cmd-accent, rgba(255, 255, 255, 0.60));
+  cursor:         pointer;
+  display:        flex;
+  align-items:    center;
+  justify-content: center;
+  padding:        0;
+  will-change:    transform, opacity;
+  transition:
+    color      0.20s ease,
+    background 0.20s ease,
+    box-shadow 0.20s ease;
+}
+
+/* Voice enabled — subtle phase-coloured tint behind the icon */
+.command-bar__mic-btn--active {
+  color:      var(--cmd-accent, rgba(60, 200, 255, 0.90));
+  background: rgba(60, 200, 255, 0.06);
+  box-shadow: 0 0 10px var(--cmd-glow, rgba(60, 200, 255, 0.15));
+}
+
+/* Mic actively capturing — fully lit with breathing glow ring */
+.command-bar__mic-btn--listening {
+  color:      rgba(60, 220, 255, 1.00);
+  background: rgba(60, 200, 255, 0.10);
+  animation:  cmd-mic-btn-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes cmd-mic-btn-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 10px rgba(60, 200, 255, 0.25),
+      0 0  5px rgba(60, 200, 255, 0.12);
+  }
+  50% {
+    box-shadow:
+      0 0 22px rgba(60, 200, 255, 0.55),
+      0 0 11px rgba(60, 200, 255, 0.28);
+  }
+}
+
+/* Crystal theme: keep button visible on light background */
+body.crystal .command-bar__mic-btn--active {
+  background: rgba(124, 58, 237, 0.08);
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.15);
+}
+body.crystal .command-bar__mic-btn--listening {
+  background: rgba(124, 58, 237, 0.12);
+}
+
+
+/* ── Prompt glyph — listening pulse ────────────────────────────────
+   While ARIA is capturing the mic, the › chevron turns cyan and
+   pulses its text-shadow like a breath.                               */
+.command-bar__prompt--listening {
+  color:      rgba(60, 220, 255, 0.95) !important;
+  animation:  cmd-prompt-listen-pulse 1.2s ease-in-out infinite !important;
+  transition: color 200ms ease;
+}
+
+@keyframes cmd-prompt-listen-pulse {
+  0%, 100% {
+    opacity:     0.60;
+    text-shadow: 0 0  8px rgba(60, 200, 255, 0.28);
+  }
+  50% {
+    opacity:     1.00;
+    text-shadow: 0 0 18px rgba(60, 200, 255, 0.75);
+  }
+}

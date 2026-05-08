@@ -1,0 +1,86 @@
+/* src/components/orb/ARIAOrb.css */
+/* All sizing, layout, and keyframe animations for the ARIA orb.          */
+/* Color / gradient values are set inline by the component (phase-driven). */
+
+/* ── Wrapper ──────────────────────────────────────────────────────────── */
+.aria-orb-wrapper {
+  position: relative;
+  width:  200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Let pointer events pass through the transparent outer regions */
+  pointer-events: none;
+}
+
+/* ── Outer glow halo ──────────────────────────────────────────────────── */
+/* Sits behind the orb body; box-shadow is set inline per-phase.          */
+.aria-orb-halo {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  /* Smooth halo colour transitions between phases */
+  transition: box-shadow 0.5s ease;
+  z-index: 0;
+}
+
+/* ── Main orb body ────────────────────────────────────────────────────── */
+.aria-orb-body {
+  position: relative;
+  width:  200px;
+  height: 200px;
+  border-radius: 50%;
+  /* Subtle glass rim */
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  /* Framer-motion drives opacity; background is set inline */
+  z-index: 1;
+  will-change: transform, opacity;
+  /* Smooth background gradient transitions */
+  transition: background 0.45s ease;
+}
+
+/* ── Breathing keyframe ────────────────────────────────────────────────── */
+/* A slow, organic scale pulse — 4 s cycle, infinite.                      */
+@keyframes aria-breathe {
+  0%   { transform: scale(1);    }
+  50%  { transform: scale(1.05); }
+  100% { transform: scale(1);    }
+}
+
+.aria-orb-breathe {
+  animation: aria-breathe 4s ease-in-out infinite;
+}
+
+/* ── Specular highlight ───────────────────────────────────────────────── */
+/* Small white ellipse at ~38 % / 30 % — simulates a single light source. */
+.aria-orb-specular {
+  position: absolute;
+  top:  13%;
+  left: 20%;
+  width:  36%;
+  height: 22%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.55) 0%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* ── Dev phase label ──────────────────────────────────────────────────── */
+.aria-orb-phase-label {
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}

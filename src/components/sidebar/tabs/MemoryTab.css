@@ -1,0 +1,423 @@
+/* src/components/sidebar/tabs/MemoryTab.css
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Three-section memory dashboard.
+   Matches ARIA's crystal/obsidian dual-theme system.
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
+/* ── Tab shell ──────────────────────────────────────────────── */
+.mem-tab {
+  display:        flex;
+  flex-direction: column;
+  gap:            24px;
+  padding:        20px 0 32px;
+  height:         100%;
+  overflow-y:     auto;
+  overflow-x:     hidden;
+}
+
+.mem-tab::-webkit-scrollbar        { width: 3px; }
+.mem-tab::-webkit-scrollbar-track  { background: transparent; }
+.mem-tab::-webkit-scrollbar-thumb  {
+  background:    rgba(150, 100, 255, 0.3);
+  border-radius: 2px;
+}
+
+
+/* ── Section shell ──────────────────────────────────────────── */
+.mem-section {
+  display:        flex;
+  flex-direction: column;
+  gap:            10px;
+  padding:        0 16px;
+}
+
+.mem-section__header {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  padding-bottom:  8px;
+  border-bottom:   1px solid rgba(255, 255, 255, 0.05);
+}
+
+body.crystal .mem-section__header {
+  border-bottom-color: rgba(124, 58, 237, 0.10);
+}
+
+.mem-section__label {
+  font-size:      10px;
+  font-weight:    600;
+  letter-spacing: 0.2em;
+  color:          var(--text-secondary);
+  font-family:    'JetBrains Mono', monospace;
+}
+
+.mem-section__badge {
+  font-size:      11px;
+  font-weight:    600;
+  font-family:    'JetBrains Mono', monospace;
+  color:          var(--text-primary);
+  padding:        2px 8px;
+  border-radius:  10px;
+  background:     var(--surface, rgba(20, 20, 28, 0.6));
+  box-shadow:
+    0 0 0 1px rgba(150, 100, 255, 0.35),
+    inset 0 0 8px rgba(150, 100, 255, 0.06);
+}
+
+body.crystal .mem-section__badge {
+  background: rgba(124, 58, 237, 0.08);
+  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.25);
+}
+
+
+/* ── Empty state ────────────────────────────────────────────── */
+.mem-empty {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  padding:         36px 16px;
+  font-size:       12px;
+  color:           var(--text-secondary);
+  opacity:         0.55;
+  text-align:      center;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   § 1  PERFORMANCE RING
+   ════════════════════════════════════════════════════════════ */
+
+.mem-ring__section {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            14px;
+  padding:        4px 16px 8px;
+  border-bottom:  1px solid rgba(255, 255, 255, 0.05);
+}
+
+body.crystal .mem-ring__section {
+  border-bottom-color: rgba(124, 58, 237, 0.10);
+}
+
+/* Ring SVG + overlay text  */
+.mem-ring__wrapper {
+  position: relative;
+  width:    96px;
+  height:   96px;
+}
+
+.mem-ring__svg {
+  display: block;
+}
+
+/* Mount animation: arc draws in over 0.8 s ease-out */
+@keyframes mem-ring-draw {
+  from { stroke-dashoffset: 251.33; }  /* full circumference ≈ 2π×40 */
+  to   { stroke-dashoffset: var(--mem-ring-target, 0); }
+}
+
+.mem-ring__arc {
+  stroke-dashoffset: var(--mem-ring-target, 0);
+  animation:         mem-ring-draw 0.8s ease-out both;
+  will-change:       stroke-dashoffset;
+}
+
+/* Center percentage text */
+.mem-ring__center {
+  position:        absolute;
+  inset:           0;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  pointer-events:  none;
+}
+
+.mem-ring__pct {
+  font-size:   18px;
+  font-weight: 500;
+  color:       var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Stat row below ring */
+.mem-ring__stats {
+  display:     flex;
+  align-items: center;
+  gap:         6px;
+  flex-wrap:   wrap;
+  justify-content: center;
+}
+
+.mem-ring__stat {
+  font-size:      10px;
+  font-weight:    400;
+  font-family:    'JetBrains Mono', monospace;
+  letter-spacing: 0.05em;
+  color:          var(--text-secondary);
+  opacity:        0.75;
+}
+
+.mem-ring__stat-sep {
+  color:   var(--text-secondary);
+  opacity: 0.35;
+  font-size: 10px;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   § 2  LEARNED PATTERNS
+   ════════════════════════════════════════════════════════════ */
+
+.mem-pattern__list {
+  display:        flex;
+  flex-direction: column;
+  gap:            6px;
+}
+
+/* ── Pattern card ──────────────────────────────────────────── */
+.mem-pattern__card {
+  background:    rgba(255, 255, 255, 0.04);
+  border:        1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding:       10px 12px;
+  display:       flex;
+  flex-direction: column;
+  gap:           6px;
+  transition:    background 0.15s ease, border-color 0.15s ease;
+}
+
+.mem-pattern__card:hover {
+  background:   rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.10);
+}
+
+body.crystal .mem-pattern__card {
+  background:   rgba(255, 255, 255, 0.50);
+  border-color: rgba(124, 58, 237, 0.12);
+}
+
+body.crystal .mem-pattern__card:hover {
+  background:   rgba(255, 255, 255, 0.65);
+  border-color: rgba(124, 58, 237, 0.20);
+}
+
+/* Row 1: intent + confidence bar */
+.mem-pattern__row1 {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+  min-width:   0;
+}
+
+.mem-pattern__intent {
+  flex:          1;
+  font-size:     12px;
+  font-weight:   500;
+  font-family:   'Inter', system-ui, sans-serif;
+  color:         var(--text-primary);
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  min-width:     0;
+}
+
+/* Confidence bar */
+.mem-pattern__conf-track {
+  width:         60px;
+  height:        3px;
+  border-radius: 2px;
+  background:    rgba(255, 255, 255, 0.10);
+  flex-shrink:   0;
+  overflow:      hidden;
+}
+
+body.crystal .mem-pattern__conf-track {
+  background: rgba(124, 58, 237, 0.12);
+}
+
+@keyframes mem-conf-grow {
+  from { width: 0; }
+  to   { width: var(--conf-w, 0%); }
+}
+
+.mem-pattern__conf-fill {
+  height:       100%;
+  border-radius: 2px;
+  background:    linear-gradient(
+    90deg,
+    rgba(150, 100, 255, 0.9),
+    rgba(60,  200, 255, 0.9),
+    rgba(80,  230, 120, 0.9)
+  );
+  width:       var(--conf-w, 0%);
+  animation:   mem-conf-grow 0.55s ease-out both;
+  will-change: width;
+}
+
+/* Row 2: seen count + forget button */
+.mem-pattern__row2 {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+}
+
+.mem-pattern__count {
+  font-size:      10px;
+  font-family:    'JetBrains Mono', monospace;
+  color:          var(--text-secondary);
+  opacity:        0.7;
+  letter-spacing: 0.03em;
+}
+
+.mem-pattern__forget {
+  border:      none;
+  background:  transparent;
+  cursor:      pointer;
+  font-size:   10px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+  color:       rgba(255, 80, 80, 0.60);
+  padding:     0;
+  transition:  color 0.15s ease, opacity 0.15s ease;
+  letter-spacing: 0.02em;
+}
+
+.mem-pattern__forget:hover {
+  color: rgba(255, 80, 80, 0.90);
+}
+
+/* Show more link */
+.mem-pattern__show-more {
+  border:      none;
+  background:  transparent;
+  cursor:      pointer;
+  font-size:   10px;
+  font-family: 'JetBrains Mono', monospace;
+  color:       var(--text-secondary);
+  letter-spacing: 0.08em;
+  padding:     4px 0;
+  align-self:  center;
+  transition:  color 0.15s ease;
+  opacity:     0.65;
+}
+
+.mem-pattern__show-more:hover {
+  color:   var(--text-primary);
+  opacity: 1;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   § 3  RECENT EPISODES
+   ════════════════════════════════════════════════════════════ */
+
+.mem-episode__list {
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+}
+
+/* ── Episode row ────────────────────────────────────────────── */
+.mem-episode__row {
+  border-radius: 6px;
+  padding:       8px 10px;
+  cursor:        pointer;
+  transition:    background 0.15s ease;
+  user-select:   none;
+}
+
+.mem-episode__row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+body.crystal .mem-episode__row:hover {
+  background: rgba(124, 58, 237, 0.05);
+}
+
+.mem-episode__row:focus-visible {
+  outline:        2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Collapsed summary row */
+.mem-episode__summary {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+  min-width:   0;
+}
+
+/* Status dot */
+.mem-episode__dot {
+  width:         7px;
+  height:        7px;
+  border-radius: 50%;
+  flex-shrink:   0;
+  box-shadow:    0 0 6px currentColor;
+}
+
+.mem-episode__goal {
+  flex:          1;
+  font-size:     12px;
+  font-weight:   400;
+  font-family:   'Inter', system-ui, sans-serif;
+  color:         var(--text-primary);
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  min-width:     0;
+}
+
+.mem-episode__time {
+  font-size:   10px;
+  font-family: 'JetBrains Mono', monospace;
+  color:       var(--text-secondary);
+  opacity:     0.65;
+  flex-shrink: 0;
+}
+
+.mem-episode__chevron {
+  font-size:   9px;
+  color:       var(--text-secondary);
+  opacity:     0.5;
+  flex-shrink: 0;
+  margin-left: 2px;
+}
+
+/* Expanded detail */
+.mem-episode__detail {
+  padding-top: 8px;
+}
+
+.mem-episode__full-goal {
+  font-size:   12px;
+  font-weight: 400;
+  font-family: 'Inter', system-ui, sans-serif;
+  color:       var(--text-primary);
+  line-height: 1.55;
+  word-break:  break-word;
+  margin-bottom: 6px;
+  opacity:     0.85;
+}
+
+.mem-episode__meta {
+  display:     flex;
+  align-items: center;
+  gap:         6px;
+}
+
+.mem-episode__meta-item {
+  font-size:      10px;
+  font-family:    'JetBrains Mono', monospace;
+  color:          var(--text-secondary);
+  letter-spacing: 0.03em;
+}
+
+.mem-episode__meta-sep {
+  color:   var(--text-secondary);
+  opacity: 0.35;
+  font-size: 10px;
+}

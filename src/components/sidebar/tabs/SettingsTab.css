@@ -1,0 +1,453 @@
+/* src/components/sidebar/tabs/SettingsTab.css
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Settings panel styles.
+   Matches ARIA crystal / obsidian dual-theme system.
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
+/* ── Tab shell ──────────────────────────────────────────────── */
+.set-tab {
+  display:        flex;
+  flex-direction: column;
+  gap:            24px;
+  padding:        20px 16px 32px;
+  height:         100%;
+  overflow-y:     auto;
+  overflow-x:     hidden;
+}
+
+.set-tab::-webkit-scrollbar        { width: 3px; }
+.set-tab::-webkit-scrollbar-track  { background: transparent; }
+.set-tab::-webkit-scrollbar-thumb  {
+  background:    rgba(150, 100, 255, 0.3);
+  border-radius: 2px;
+}
+
+
+/* ── Group ──────────────────────────────────────────────────── */
+.set-group {
+  display:        flex;
+  flex-direction: column;
+  gap:            14px;
+}
+
+.set-group__label {
+  font-size:      10px;
+  font-weight:    600;
+  letter-spacing: 0.2em;
+  color:          var(--text-secondary);
+  font-family:    'JetBrains Mono', monospace;
+  padding-bottom: 8px;
+  border-bottom:  1px solid rgba(255, 255, 255, 0.05);
+}
+
+body.crystal .set-group__label {
+  border-bottom-color: rgba(124, 58, 237, 0.10);
+}
+
+.set-group__body {
+  display:        flex;
+  flex-direction: column;
+  gap:            14px;
+}
+
+
+/* ── Row ────────────────────────────────────────────────────── */
+.set-row {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             10px;
+  min-height:      28px;
+}
+
+/* Slider row stacks label+value above the track */
+.set-row--slider {
+  flex-direction: column;
+  align-items:    stretch;
+  gap:            8px;
+}
+
+/* Voice row: label-group left, toggle right */
+.set-row--voice {
+  align-items: center;
+}
+
+.set-row__label {
+  font-size:   12px;
+  font-weight: 400;
+  font-family: 'Inter', system-ui, sans-serif;
+  color:       var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.set-row__label-group {
+  display:     flex;
+  align-items: center;
+  gap:         7px;
+}
+
+.set-row__control {
+  display:     flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   Pill group
+   ════════════════════════════════════════════════════════════ */
+.set-pills {
+  display: flex;
+  gap:     5px;
+}
+
+.set-pill {
+  border:        none;
+  cursor:        pointer;
+  font-family:   'Inter', system-ui, sans-serif;
+  font-size:     11px;
+  font-weight:   500;
+  letter-spacing: 0.03em;
+  padding:       5px 11px;
+  border-radius: 20px;
+  color:         var(--text-secondary);
+  background:    rgba(255, 255, 255, 0.06);
+  transition:    background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  white-space:   nowrap;
+  line-height:   1;
+}
+
+body.crystal .set-pill {
+  background: rgba(124, 58, 237, 0.07);
+}
+
+.set-pill:hover {
+  background: rgba(255, 255, 255, 0.11);
+  color:      var(--text-primary);
+}
+
+body.crystal .set-pill:hover {
+  background: rgba(124, 58, 237, 0.12);
+}
+
+/* Active pill: spectral gradient border */
+.set-pill--active {
+  color:            var(--text-primary);
+  background-image:
+    linear-gradient(var(--surface, rgba(8,6,12,0.92)),
+                    var(--surface, rgba(8,6,12,0.92))),
+    linear-gradient(
+      90deg,
+      rgba(255,100,100,0.75),
+      rgba(255,200,  0,0.75),
+      rgba(100,255,200,0.75),
+      rgba(150,100,255,0.75)
+    );
+  background-clip:   padding-box, border-box;
+  background-origin: padding-box, border-box;
+  border:            1px solid transparent;
+  box-shadow:        0 0 10px rgba(150,100,255,0.12);
+}
+
+body.crystal .set-pill--active {
+  background-image:
+    linear-gradient(rgba(245,243,255,0.90), rgba(245,243,255,0.90)),
+    linear-gradient(
+      90deg,
+      rgba(255,100,100,0.75),
+      rgba(255,200,  0,0.75),
+      rgba(100,255,200,0.75),
+      rgba(150,100,255,0.75)
+    );
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   Custom LLM dropdown
+   ════════════════════════════════════════════════════════════ */
+.set-dropdown {
+  position:   relative;
+  min-width:  130px;
+}
+
+.set-dropdown__trigger {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             8px;
+  width:           100%;
+  padding:         6px 12px;
+  border-radius:   8px;
+  border:          1px solid rgba(255, 255, 255, 0.08);
+  background:      rgba(255, 255, 255, 0.05);
+  cursor:          pointer;
+  font-family:     'JetBrains Mono', monospace;
+  font-size:       12px;
+  color:           var(--text-primary);
+  transition:      background 0.15s ease, border-color 0.15s ease;
+}
+
+.set-dropdown__trigger:hover {
+  background:   rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+body.crystal .set-dropdown__trigger {
+  background:   rgba(124, 58, 237, 0.07);
+  border-color: rgba(124, 58, 237, 0.16);
+}
+
+body.crystal .set-dropdown__trigger:hover {
+  background: rgba(124, 58, 237, 0.12);
+}
+
+.set-dropdown__value {
+  flex: 1;
+  text-align: left;
+}
+
+.set-dropdown__arrow {
+  font-size:  9px;
+  color:      var(--text-secondary);
+  flex-shrink: 0;
+  opacity:    0.7;
+}
+
+/* Dropdown menu */
+.set-dropdown__menu {
+  position:      absolute;
+  top:           calc(100% + 4px);
+  left:          0;
+  right:         0;
+  z-index:       50;
+  list-style:    none;
+  border-radius: 8px;
+  border:        1px solid rgba(255, 255, 255, 0.08);
+  background:    rgba(12, 10, 18, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow:      hidden;
+  box-shadow:    0 8px 32px rgba(0,0,0,0.55);
+  padding:       4px;
+}
+
+body.crystal .set-dropdown__menu {
+  background:    rgba(245, 243, 255, 0.97);
+  border-color:  rgba(124, 58, 237, 0.16);
+  box-shadow:    0 8px 24px rgba(124, 58, 237, 0.10);
+}
+
+.set-dropdown__option {
+  padding:       8px 10px;
+  border-radius: 5px;
+  font-family:   'JetBrains Mono', monospace;
+  font-size:     12px;
+  color:         var(--text-secondary);
+  cursor:        pointer;
+  transition:    background 0.12s ease, color 0.12s ease;
+  outline:       none;
+}
+
+.set-dropdown__option:hover,
+.set-dropdown__option:focus-visible {
+  background: rgba(255, 255, 255, 0.07);
+  color:      var(--text-primary);
+}
+
+body.crystal .set-dropdown__option:hover,
+body.crystal .set-dropdown__option:focus-visible {
+  background: rgba(124, 58, 237, 0.08);
+}
+
+/* Active option: spectral left border */
+.set-dropdown__option--active {
+  color:        var(--text-primary);
+  border-left:  3px solid transparent;
+  padding-left: 7px;  /* compensate for border */
+  border-image: linear-gradient(
+    180deg,
+    rgba(150, 100, 255, 0.9),
+    rgba(60,  200, 255, 0.9),
+    rgba(80,  230, 120, 0.9)
+  ) 1;
+  background:   rgba(255, 255, 255, 0.04);
+}
+
+body.crystal .set-dropdown__option--active {
+  background: rgba(124, 58, 237, 0.06);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   Max-steps slider
+   ════════════════════════════════════════════════════════════ */
+.set-slider__value {
+  font-size:   11px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  color:       var(--text-primary);
+  min-width:   18px;
+  text-align:  right;
+}
+
+.set-slider__wrapper {
+  position:   relative;
+  width:      100%;
+}
+
+/* Webkit (Chrome / Electron) */
+.set-slider {
+  -webkit-appearance: none;
+  appearance:         none;
+  width:       100%;
+  height:      4px;
+  border-radius: 4px;
+  cursor:      pointer;
+  outline:     none;
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) var(--set-slider-pct, 50%),
+    rgba(255, 255, 255, 0.12) var(--set-slider-pct, 50%),
+    rgba(255, 255, 255, 0.12) 100%
+  );
+  transition: background 0.1s ease;
+}
+
+body.crystal .set-slider {
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) var(--set-slider-pct, 50%),
+    rgba(124, 58, 237, 0.15) var(--set-slider-pct, 50%),
+    rgba(124, 58, 237, 0.15) 100%
+  );
+}
+
+.set-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance:         none;
+  width:         14px;
+  height:        14px;
+  border-radius: 50%;
+  background:    #fff;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.15),
+    0 0 10px var(--accent, rgba(150,100,255,0.5));
+  cursor:        pointer;
+  transition:    box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.set-slider::-webkit-slider-thumb:hover {
+  transform:  scale(1.18);
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.20),
+    0 0 16px var(--accent, rgba(150,100,255,0.7));
+}
+
+.set-slider::-webkit-slider-thumb:active {
+  transform: scale(1.08);
+}
+
+/* Firefox */
+.set-slider::-moz-range-thumb {
+  width:         14px;
+  height:        14px;
+  border:        none;
+  border-radius: 50%;
+  background:    #fff;
+  box-shadow:    0 0 10px var(--accent, rgba(150,100,255,0.5));
+  cursor:        pointer;
+}
+
+.set-slider::-moz-range-track {
+  height:        4px;
+  border-radius: 4px;
+  background:    rgba(255, 255, 255, 0.12);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   Toggle switch
+   ════════════════════════════════════════════════════════════ */
+.set-toggle {
+  position:        relative;
+  display:         inline-flex;
+  align-items:     center;
+  width:           36px;
+  height:          20px;
+  border-radius:   10px;
+  border:          none;
+  cursor:          pointer;
+  flex-shrink:     0;
+  padding:         0 3px;
+  transition:      background 0.2s ease;
+
+  /* Off state */
+  background: rgba(255, 255, 255, 0.10);
+  justify-content: flex-start;
+}
+
+body.crystal .set-toggle {
+  background: rgba(124, 58, 237, 0.12);
+}
+
+/* On state — spectral gradient track */
+.set-toggle--on {
+  background: linear-gradient(
+    90deg,
+    rgba(150, 100, 255, 0.85),
+    rgba(60,  200, 255, 0.85)
+  );
+  justify-content: flex-end;
+}
+
+/* Disabled */
+.set-toggle--disabled {
+  opacity:        0.4;
+  cursor:         not-allowed;
+  pointer-events: none;
+}
+
+/* Thumb (Framer Motion `layout` handles position) */
+.set-toggle__thumb {
+  width:         14px;
+  height:        14px;
+  border-radius: 50%;
+  background:    #fff;
+  box-shadow:    0 1px 4px rgba(0,0,0,0.35);
+  flex-shrink:   0;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   Voice — "coming soon" badge
+   ════════════════════════════════════════════════════════════ */
+.set-voice__badge {
+  font-size:      9px;
+  font-weight:    600;
+  font-family:    'JetBrains Mono', monospace;
+  letter-spacing: 0.06em;
+  color:          rgba(251, 191, 36, 0.85);
+  background:     rgba(251, 191, 36, 0.10);
+  border:         1px solid rgba(251, 191, 36, 0.20);
+  border-radius:  4px;
+  padding:        1px 6px;
+  white-space:    nowrap;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   Footer
+   ════════════════════════════════════════════════════════════ */
+.set-footer {
+  margin-top:     auto;
+  padding-top:    16px;
+  font-size:      10px;
+  font-family:    'JetBrains Mono', monospace;
+  letter-spacing: 0.08em;
+  color:          var(--text-secondary);
+  opacity:        0.40;
+  text-align:     center;
+}

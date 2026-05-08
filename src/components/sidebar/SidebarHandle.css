@@ -1,0 +1,99 @@
+/* src/components/sidebar/SidebarHandle.css
+   ─────────────────────────────────────────
+   Thin spectral strip on the very left edge.
+
+   rest   → 4 px wide, spectral gradient, slow hue drift
+   hover  → 8 px wide, tooltip appears, glow intensifies
+   open   → opacity 0.55 (sidebar is visible, handle recedes) */
+
+
+.sidebar-handle {
+  /* Positioning */
+  position:  fixed;
+  left:      0;
+  top:       50%;
+  transform: translateY(-50%);
+  z-index:   25;
+
+  /* Shape */
+  width:         4px;
+  height:        60px;
+  border-radius: 0 3px 3px 0;
+  border:        none;
+  padding:       0;
+  cursor:        pointer;
+
+  /* Spectral gradient (vertical, loops for seamless animation) */
+  background: linear-gradient(
+    180deg,
+    rgba(255, 100, 100, 0.75),
+    rgba(255, 200,   0, 0.75),
+    rgba(100, 255, 200, 0.75),
+    rgba(150, 100, 255, 0.75),
+    rgba(255, 100, 100, 0.75)   /* loop for seamless scroll */
+  );
+  background-size: 100% 300%;
+
+  /* Glow at rest */
+  box-shadow: 2px 0 12px rgba(150, 100, 255, 0.22);
+
+  /* Smooth width / shadow / opacity transitions */
+  transition:
+    width      0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.2s ease,
+    opacity    0.25s ease;
+
+  /* Slow spectrum scroll */
+  animation: handle-spectrum-scroll 6s linear infinite;
+}
+
+/* Spectrum scroll — moves the background vertically through the strip */
+@keyframes handle-spectrum-scroll {
+  0%   { background-position: 50% 0%;   }
+  100% { background-position: 50% 100%; }
+}
+
+.sidebar-handle:hover {
+  width:      8px;
+  box-shadow: 3px 0 20px rgba(150, 100, 255, 0.50);
+}
+
+/* While sidebar is open, dim the strip */
+.sidebar-handle--open {
+  opacity: 0.50;
+}
+.sidebar-handle--open:hover {
+  opacity: 1;
+}
+
+
+/* ── Tooltip ─────────────────────────────────────────────────
+   Appears to the right of the handle on hover.               */
+.sidebar-handle__tooltip {
+  position:    absolute;
+  left:        calc(100% + 10px);
+  top:         50%;
+  transform:   translateY(-50%);
+  white-space: nowrap;
+
+  font-family:    'Inter', system-ui, sans-serif;
+  font-size:      11px;
+  font-weight:    500;
+  letter-spacing: 0.05em;
+  color:          rgba(255, 255, 255, 0.85);
+
+  background:      rgba(10, 8, 18, 0.90);
+  border:          1px solid rgba(150, 100, 255, 0.28);
+  border-radius:   6px;
+  padding:         4px 10px;
+  backdrop-filter: blur(10px);
+
+  /* Hidden by default, shown on hover */
+  opacity:        0;
+  pointer-events: none;
+  transition:     opacity 0.15s ease;
+}
+
+.sidebar-handle:hover .sidebar-handle__tooltip {
+  opacity: 1;
+}
