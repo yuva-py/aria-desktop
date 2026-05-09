@@ -18,6 +18,7 @@ import React, {
 } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useSettingsStore from '../../../store/settingsStore';
+import { voiceSupported } from '../../../hooks/useVoiceIO';
 import { materialize, materializeFast } from '../../../animations/materialize';
 import './SettingsTab.css';
 
@@ -200,20 +201,21 @@ function Toggle({ id, checked, onChange, disabled }) {
   );
 }
 
-// ── Voice row (coming-soon, disabled) ─────────────────────────────────────
-function VoiceRow({ label, id }) {
-  const [on, setOn] = useState(false);
+// ── Voice row — live when browser supports it, graceful fallback otherwise ──
+function VoiceRow({ label, id, checked, onChange, supported = true }) {
   return (
     <div className="set-row set-row--voice">
       <div className="set-row__label-group">
         <span className="set-row__label" id={id}>{label}</span>
-        <span className="set-voice__badge">coming soon</span>
+        {!supported && (
+          <span className="set-voice__badge">not supported</span>
+        )}
       </div>
       <Toggle
         id={`${id}-toggle`}
-        checked={on}
-        onChange={setOn}
-        disabled
+        checked={checked}
+        onChange={onChange}
+        disabled={!supported}
       />
     </div>
   );
@@ -246,6 +248,9 @@ export default function SettingsTab() {
   const orbSize         = useSettingsStore((s) => s.orbSize);
   const sidebarPosition = useSettingsStore((s) => s.sidebarPosition);
   const soundEnabled    = useSettingsStore((s) => s.soundEnabled);
+  const sttEnabled      = useSettingsStore((s) => s.sttEnabled);
+  const ttsEnabled      = useSettingsStore((s) => s.ttsEnabled);
+  const wakeWordEnabled = useSettingsStore((s) => s.wakeWordEnabled);
 
   const setModel           = useSettingsStore((s) => s.setModel);
   const setStrategy        = useSettingsStore((s) => s.setStrategy);
@@ -254,6 +259,9 @@ export default function SettingsTab() {
   const setOrbSize         = useSettingsStore((s) => s.setOrbSize);
   const setSidebarPosition = useSettingsStore((s) => s.setSidebarPosition);
   const setSoundEnabled    = useSettingsStore((s) => s.setSoundEnabled);
+  const setSttEnabled      = useSettingsStore((s) => s.setSttEnabled);
+  const setTtsEnabled      = useSettingsStore((s) => s.setTtsEnabled);
+  const setWakeWordEnabled = useSettingsStore((s) => s.setWakeWordEnabled);
 
   // Sync body class when theme changes
   useEffect(() => {
@@ -304,9 +312,15 @@ export default function SettingsTab() {
       {/* ══ GROUP 2 — VOICE & SOUND ══════════════════════════════ */}
       <Group label="VOICE">
         <SoundRow checked={soundEnabled} onChange={setSoundEnabled} />
-        <VoiceRow label="Speech-to-text" id="set-stt"  />
-        <VoiceRow label="Text-to-speech" id="set-tts"  />
-        <VoiceRow label="Wake word"      id="set-wake" />
+        <VoiceRow label="Speech-to-text" id="set-stt"
+          checked={sttEnabled}      onChange={setSttEnabled}
+          supported={voiceSupported.stt} />
+        <VoiceRow label="Text-to-speech" id="set-tts"
+          checked={ttsEnabled}      onChange={setTtsEnabled}
+          supported={voiceSupported.tts} />
+        <VoiceRow label="Wake word"      id="set-wake"
+          checked={wakeWordEnabled} onChange={setWakeWordEnabled}
+          supported={voiceSupported.wakeWord} />
       </Group>
 
       {/* ══ GROUP 3 — APPEARANCE ═════════════════════════════════ */}

@@ -11,6 +11,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import useARIAStream        from './hooks/useARIAStream';
 import useAudioReactivity  from './hooks/useAudioReactivity';
 import useMemorySync       from './hooks/useMemorySync';
+import useVoiceIO          from './hooks/useVoiceIO';
+import { _registerVoiceIO } from './components/input/CommandBar';
 import useAriaStore       from './store/ariaStore';
 import useSettingsStore   from './store/settingsStore';
 
@@ -35,6 +37,10 @@ export default function App() {
   useARIAStream();
   useAudioReactivity();
   useMemorySync();
+
+  // Voice I/O — registers STT/TTS/wake word; exposes API to CommandBar
+  const voiceIO = useVoiceIO();
+  useEffect(() => { _registerVoiceIO(voiceIO); }, [voiceIO]);
 
   // ── Apply theme class to <body> ──────────────────────────────────────────
   useEffect(() => {

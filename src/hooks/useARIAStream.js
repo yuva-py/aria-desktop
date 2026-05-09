@@ -94,6 +94,7 @@ function dispatch(parsed, store) {
       // data: { response: string }
       store.setPhase('complete');
       store.setCurrentGoal(data.response);
+      store.setLastResponse(data.response ?? '');  // TTS hook subscribes to this
       playSound('response');
       break;
 

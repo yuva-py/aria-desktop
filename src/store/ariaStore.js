@@ -46,6 +46,13 @@ const useAriaStore = create((set) => ({
    */
   tier3Action: null,
 
+  /**
+   * Last ARIA response text — set on session_complete.
+   * TTS subscribes to this field to speak responses aloud.
+   * @type {string}
+   */
+  lastResponse: '',
+
   // ── Actions ────────────────────────────────────────────────────────────────
 
   /** @param {Phase} phase */
@@ -95,6 +102,9 @@ const useAriaStore = create((set) => ({
 
   /** @param {boolean} v */
   setSpeaking: (v) => set({ isSpeaking: !!v }),
+
+  /** @param {string} response */
+  setLastResponse: (response) => set({ lastResponse: response }),
 
   // ── Tier-3 (destructive action) ────────────────────────────────────────────
 

@@ -29,6 +29,11 @@ import { accentForPhase } from '../../constants/accentStrategy';
 import { play as playSound } from '../../sound/ariaSounds';
 import './CommandBar.css';
 
+// useVoiceIO is instantiated at App level — access via window ref set there
+// (avoids running two recognition sessions from two component instances)
+let _voiceIO = null;
+export function _registerVoiceIO(api) { _voiceIO = api; }
+
 // ── Minimal inline mic SVG ────────────────────────────────────────────────────
 function MicIcon({ active }) {
   return (
@@ -70,13 +75,14 @@ export default function CommandBar() {
   const strategy        = useSettingsStore((s) => s.strategy);
   const maxSteps        = useSettingsStore((s) => s.maxSteps);
 
-  // ── Voice toggle ──────────────────────────────────────────────────────────
+  // ── Voice settings ────────────────────────────────────────────────────────
   const voiceEnabled    = useSettingsStore((s) => s.voiceEnabled);
   const setVoiceEnabled = useSettingsStore((s) => s.setVoiceEnabled);
+  const sttEnabled      = useSettingsStore((s) => s.sttEnabled);
 
-  // ── Submit ────────────────────────────────────────────────────────────────
-  const submit = useCallback(async () => {
-    const trimmed = value.trim();
+  // ── Submit (optionally takes an override text for STT auto-submit) ─────────
+  const submit = useCallback(async (overrideText) => {
+    const trimmed = (overrideText ?? value).trim();
     if (!trimmed || loading) return;
 
     // Trigger the spectral-sweep flash animation
@@ -218,20 +224,36 @@ export default function CommandBar() {
             aria-label="ARIA command input"
           />
 
-          {/* Mic toggle — enables/disables voice input */}
+          {/* Mic button — when STT enabled: tap to speak; else toggles mic reactivity */}
           <motion.button
             id="aria-mic-toggle"
             className={[
               'command-bar__mic-btn',
-              voiceEnabled    ? 'command-bar__mic-btn--active'    : '',
-              isListening     ? 'command-bar__mic-btn--listening' : '',
+              (voiceEnabled || sttEnabled) ? 'command-bar__mic-btn--active'    : '',
+              isListening                  ? 'command-bar__mic-btn--listening' : '',
             ].filter(Boolean).join(' ')}
-            onClick={() => setVoiceEnabled(!voiceEnabled)}
-            aria-label={voiceEnabled ? 'Disable voice input' : 'Enable voice input'}
-            aria-pressed={voiceEnabled}
+            onClick={() => {
+              if (sttEnabled && _voiceIO) {
+                // STT mode: tap to record, transcript fills input and submits
+                if (isListening) {
+                  _voiceIO.stopListening();
+                } else {
+                  _voiceIO.startListening((transcript) => {
+                    setValue(transcript);
+                    // Auto-submit directly with the transcript so we bypass
+                    // the stale closure over `value`
+                    setTimeout(() => submit(transcript), 120);
+                  });
+                }
+              } else {
+                setVoiceEnabled(!voiceEnabled);
+              }
+            }}
+            aria-label={isListening ? 'Stop listening' : sttEnabled ? 'Start voice input' : voiceEnabled ? 'Disable mic' : 'Enable mic'}
+            aria-pressed={voiceEnabled || isListening}
             whileHover={{ scale: 1.12 }}
             whileTap={{ scale: 0.90 }}
-            animate={{ opacity: isListening ? 1 : voiceEnabled ? 0.72 : 0.30 }}
+            animate={{ opacity: isListening ? 1 : (voiceEnabled || sttEnabled) ? 0.72 : 0.30 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
           >
             <MicIcon active={isListening} />

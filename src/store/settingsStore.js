@@ -45,6 +45,15 @@ const useSettingsStore = create((set) => ({
   /** @type {boolean} — microphone input for voice reactivity */
   voiceEnabled: false,
 
+  /** @type {boolean} — speech-to-text: mic button transcribes speech → input */
+  sttEnabled: false,
+
+  /** @type {boolean} — text-to-speech: ARIA responses are spoken aloud */
+  ttsEnabled: false,
+
+  /** @type {boolean} — wake word: say "Hey ARIA" to activate without clicking */
+  wakeWordEnabled: false,
+
   // ── Actions ────────────────────────────────────────────────────────────────
 
   /** @param {Theme} theme */
@@ -76,6 +85,15 @@ const useSettingsStore = create((set) => ({
 
   /** @param {boolean} v */
   setVoiceEnabled: (v) => set({ voiceEnabled: !!v }),
+
+  /** @param {boolean} v */
+  setSttEnabled: (v) => set({ sttEnabled: !!v }),
+
+  /** @param {boolean} v */
+  setTtsEnabled: (v) => set({ ttsEnabled: !!v }),
+
+  /** @param {boolean} v */
+  setWakeWordEnabled: (v) => set({ wakeWordEnabled: !!v }),
 }));
 
 export default useSettingsStore;
