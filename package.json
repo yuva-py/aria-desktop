@@ -3,9 +3,11 @@
   "version": "0.1.0",
   "main": "electron/main.js",
   "scripts": {
+    "dev:backend": "python python/stub_server.py",
     "dev:vite": "vite",
     "dev:electron": "electron .",
-    "dev": "concurrently \"npm run dev:vite\" \"wait-on http://localhost:5173 && npm run dev:electron\"",
+    "dev": "concurrently --names \"BACKEND,VITE,ELECTRON\" --prefix-colors \"cyan,yellow,magenta\" \"npm run dev:backend\" \"npm run dev:vite\" \"wait-on http://localhost:5173 && wait-on http://localhost:7331/docs && npm run dev:electron\"",
+    "dev:web": "concurrently --names \"BACKEND,VITE\" --prefix-colors \"cyan,yellow\" \"npm run dev:backend\" \"npm run dev:vite\"",
     "build": "vite build && electron-builder"
   },
   "devDependencies": {
