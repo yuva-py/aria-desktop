@@ -22,10 +22,11 @@ import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useSettingsStore from '../../store/settingsStore';
 import { materializeSidebar } from '../../animations/materialize';
-import PipelineTab  from './tabs/PipelineTab';
-import LogsTab      from './tabs/LogsTab';
-import MemoryTab    from './tabs/MemoryTab';
-import SettingsTab  from './tabs/SettingsTab';
+import PipelineTab       from './tabs/PipelineTab';
+import LogsTab           from './tabs/LogsTab';
+import MemoryTab         from './tabs/MemoryTab';
+import SettingsTab       from './tabs/SettingsTab';
+import ConversationPanel from '../conversation/ConversationPanel';
 import './Sidebar.css';
 
 // Build the materialize variants with the correct off-screen direction
@@ -42,6 +43,7 @@ function variantsForSide(side) {
 
 // ── Tab config ──────────────────────────────────────────────────────────────
 const TABS = [
+  { id: 'chat',     label: 'Chat'     },
   { id: 'pipeline', label: 'Pipeline' },
   { id: 'logs',     label: 'Logs'     },
   { id: 'memory',   label: 'Memory'   },
@@ -158,6 +160,19 @@ export default function Sidebar() {
             aria-labelledby={`aria-tab-${sidebarTab}`}
           >
             <AnimatePresence mode="wait">
+              {sidebarTab === 'chat' && (
+                <motion.div
+                  key="chat"
+                  initial={{ opacity: 0, y: 8  }}
+                  animate={{ opacity: 1, y: 0  }}
+                  exit={{    opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  style={{ height: '100%' }}
+                >
+                  <ConversationPanel />
+                </motion.div>
+              )}
+
               {sidebarTab === 'pipeline' && (
                 <motion.div
                   key="pipeline"

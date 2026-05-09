@@ -25,6 +25,7 @@ import useAriaStore     from '../store/ariaStore';
 import useSettingsStore from '../store/settingsStore';
 import { getAudioContext, getMasterAnalyser, getIsSpeaking }
   from '../sound/ariaSounds';
+import { updateVAD } from './useVoiceIO';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Module-level shared state — read by Three.js useFrame (no re-renders)
@@ -52,6 +53,8 @@ let _sMic = 0;   // smoothed mic amplitude
 // ─────────────────────────────────────────────────────────────────────────────
 export default function useAudioReactivity() {
   const voiceEnabled  = useSettingsStore((s) => s.voiceEnabled);
+  const sttEnabled    = useSettingsStore((s) => s.sttEnabled);
+  const micActive     = voiceEnabled || sttEnabled;   // either opens the mic
   const setListening  = useAriaStore((s) => s.setListening);
   const setSpeaking   = useAriaStore((s) => s.setSpeaking);
 
@@ -59,9 +62,9 @@ export default function useAudioReactivity() {
   const prevListen    = useRef(false);
   const prevSpeak     = useRef(false);
 
-  // ── Mic lifecycle: open stream when voice enabled, close when disabled ──
+  // ── Mic lifecycle: open stream when voice or STT enabled ──────────────
   useEffect(() => {
-    if (voiceEnabled && !_micStream) {
+    if (micActive && !_micStream) {
       navigator.mediaDevices
         .getUserMedia({ audio: true, video: false })
         .then((stream) => {
@@ -82,14 +85,14 @@ export default function useAudioReactivity() {
         });
     }
 
-    if (!voiceEnabled && _micStream) {
+    if (!micActive && _micStream) {
       _micStream.getTracks().forEach((t) => t.stop());
       _micStream   = null;
       _micAnalyser = null;
       _micData     = null;
       _sMic        = 0;
     }
-  }, [voiceEnabled]);
+  }, [micActive]);
 
   // ── RAF amplitude sampling loop — always running ────────────────────────
   useEffect(() => {
@@ -118,8 +121,8 @@ export default function useAudioReactivity() {
 
       // ── Derive states ────────────────────────────────────────────────────
       const isSpeaking  = getIsSpeaking();
-      // "Listening" = voice on, ARIA not speaking, mic above noise floor
-      const isListening = voiceEnabled && !isSpeaking && _sMic > 0.018;
+      // "Listening" = mic active, ARIA not speaking, amplitude above noise floor
+      const isListening = micActive && !isSpeaking && _sMic > 0.018;
 
       // ── Write module-level state (Three.js reads this — no re-renders) ──
       audioState.ttsAmplitude      = _sTts;
@@ -138,6 +141,9 @@ export default function useAudioReactivity() {
       const dotsDur = Math.max(0.40, 1.20 - _sTts * 0.80);
       document.documentElement.style.setProperty(
         '--cmd-dots-dur', `${dotsDur.toFixed(2)}s`);
+
+      // ── Drive VAD for MediaRecorder-based STT ────────────────────────────
+      updateVAD(_sMic);
 
       // ── ariaStore: only on boolean flip (avoids render cascade) ──────────
       if (isListening !== prevListen.current) {
@@ -159,6 +165,6 @@ export default function useAudioReactivity() {
         rafRef.current = null;
       }
     };
-    // voiceEnabled in deps so isListening check uses fresh value after toggle
-  }, [voiceEnabled, setListening, setSpeaking]);
+    // micActive in deps so isListening check uses fresh value after toggle
+  }, [micActive, setListening, setSpeaking]);
 }

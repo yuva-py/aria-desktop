@@ -31,7 +31,7 @@ from pathlib import Path
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -357,6 +357,44 @@ async def tier3_cancel() -> dict:
         "data":  {"response": "Tier-3 action cancelled by user."},
     })
     return {"success": True}
+
+
+@app.post("/stt")
+async def stt_transcribe(request: Request) -> dict:
+    """
+    POST /stt — accepts raw WAV audio bytes, returns { success, transcript }.
+    Called by the frontend MediaRecorder pipeline after VAD silence detection.
+    Uses SpeechRecognition (Google Web Speech API) with a faster-whisper fallback.
+    """
+    try:
+        audio_bytes = await request.body()
+        if not audio_bytes:
+            return {"success": False, "transcript": "", "error": "no audio data"}
+
+        import io
+        import speech_recognition as sr
+
+        recognizer = sr.Recognizer()
+        recognizer.energy_threshold     = 300   # lower = more sensitive
+        recognizer.dynamic_energy_threshold = True
+
+        audio_file = io.BytesIO(audio_bytes)
+        with sr.AudioFile(audio_file) as source:
+            audio = recognizer.record(source)
+
+        try:
+            text = recognizer.recognize_google(audio)
+            log.info("STT transcript: %r", text[:80])
+            return {"success": True, "transcript": text}
+        except sr.UnknownValueError:
+            return {"success": True, "transcript": "", "error": "could not understand audio"}
+        except sr.RequestError as e:
+            log.warning("STT Google API error: %s", e)
+            return {"success": False, "transcript": "", "error": f"STT service error: {e}"}
+
+    except Exception as exc:
+        log.error("STT endpoint error: %s", exc, exc_info=True)
+        return {"success": False, "transcript": "", "error": str(exc)}
 
 
 @app.get("/memory")

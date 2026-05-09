@@ -23,14 +23,15 @@
 
 import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import useAriaStore      from '../../store/ariaStore';
-import useSettingsStore  from '../../store/settingsStore';
-import { accentForPhase } from '../../constants/accentStrategy';
-import { play as playSound } from '../../sound/ariaSounds';
+import useAriaStore             from '../../store/ariaStore';
+import useSettingsStore         from '../../store/settingsStore';
+import useConversationStore     from '../../store/conversationStore';
+import { accentForPhase }       from '../../constants/accentStrategy';
+import { play as playSound }    from '../../sound/ariaSounds';
 import './CommandBar.css';
 
-// useVoiceIO is instantiated at App level — access via window ref set there
-// (avoids running two recognition sessions from two component instances)
+// useVoiceIO is instantiated at App level — registered here to avoid
+// running two recognition sessions from two component instances.
 let _voiceIO = null;
 export function _registerVoiceIO(api) { _voiceIO = api; }
 
@@ -80,8 +81,10 @@ export default function CommandBar() {
   const setVoiceEnabled = useSettingsStore((s) => s.setVoiceEnabled);
   const sttEnabled      = useSettingsStore((s) => s.sttEnabled);
 
-  // ── Submit (optionally takes an override text for STT auto-submit) ─────────
-  const submit = useCallback(async (overrideText) => {
+  const addUserMessage = useConversationStore((s) => s.addUserMessage);
+
+  // ── Submit (optionally takes an override text + isVoice flag) ───────────
+  const submit = useCallback(async (overrideText, isVoice = false) => {
     const trimmed = (overrideText ?? value).trim();
     if (!trimmed || loading) return;
 
@@ -94,6 +97,9 @@ export default function CommandBar() {
 
     setLoading(true);
     setError(null);
+
+    // Record in conversation history before sending
+    addUserMessage(trimmed, isVoice);
 
     try {
       const res = await fetch(PROCESS_URL, {
@@ -240,9 +246,8 @@ export default function CommandBar() {
                 } else {
                   _voiceIO.startListening((transcript) => {
                     setValue(transcript);
-                    // Auto-submit directly with the transcript so we bypass
-                    // the stale closure over `value`
-                    setTimeout(() => submit(transcript), 120);
+                    // Auto-submit with isVoice=true so the chat shows 🎤
+                    setTimeout(() => submit(transcript, true), 120);
                   });
                 }
               } else {

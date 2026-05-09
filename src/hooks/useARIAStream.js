@@ -10,8 +10,9 @@
 //   • Returns { connected: boolean, lastEvent: object | null }
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import useAriaStore from '../store/ariaStore';
-import useSettingsStore from '../store/settingsStore';  // available for future use
+import useAriaStore          from '../store/ariaStore';
+import useSettingsStore      from '../store/settingsStore';  // available for future use
+import useConversationStore  from '../store/conversationStore';
 import { play as playSound } from '../sound/ariaSounds';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -95,6 +96,8 @@ function dispatch(parsed, store) {
       store.setPhase('complete');
       store.setCurrentGoal(data.response);
       store.setLastResponse(data.response ?? '');  // TTS hook subscribes to this
+      // Add ARIA response to conversation history
+      useConversationStore.getState().addAriaMessage(data.response ?? '');
       playSound('response');
       break;
 

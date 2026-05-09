@@ -310,13 +310,16 @@ export default function NeuralField({ phase, currentTool }) {
 
     // ── 2. Node drift + soft radial boundary ─────────────────────────────
     // Speaking: field becomes agitated — drift speed rises with amplitude
+    // Listening: nodes pulse outward with user's voice energy (Jarvis effect)
     const ampDriftMult = audioState.isSpeaking
-      ? 1.0 + audioState.combinedAmplitude * 3.0
-      : 1.0;
+      ? 1.0 + audioState.ttsAmplitude * 5.0     // stronger speaking surge
+      : audioState.isListening
+        ? 1.0 + audioState.micAmplitude * 4.0   // strong listening pulse
+        : 1.0;
     const ds = lDrift.current * dt * 60 * ampDriftMult;
 
-    // Listening: all nodes gently converge toward the orb
-    const listenPull = audioState.isListening ? audioState.micAmplitude * 0.15 : 0;
+    // Listening: strong inward convergence with amplitude — field "breathes"
+    const listenPull = audioState.isListening ? audioState.micAmplitude * 0.40 : 0;
 
     for (let i = 0; i < N; i++) {
       const n = nd[i];
@@ -343,24 +346,26 @@ export default function NeuralField({ phase, currentTool }) {
       if (vLen > n.vMax) n.vel.setLength(n.vMax);
     }
 
-    // ── 2.5. Mini activation waves triggered by TTS amplitude spikes ────────
-    // When ARIA is speaking and loudness crests above 0.55, fire a small
-    // 2-hop wave from a random inner node — creates ripples timed to speech.
+    // ── 2.5. Amplitude-driven activation waves ───────────────────────────────
+    // TTS: waves on loud moments (ARIA speaking) — cyan/tool colour
+    // Mic: waves on speech peaks (user speaking) — soft white pulse
     const nowMs = performance.now();
-    if (
-      audioState.isSpeaking &&
-      audioState.ttsAmplitude > 0.55 &&
-      nowMs - lastWaveMs.current > 500    // throttle: at most one wave per 500 ms
-    ) {
+
+    const ttsPeak = audioState.isSpeaking && audioState.ttsAmplitude > 0.45;
+    const micPeak = audioState.isListening && audioState.micAmplitude > 0.12;
+
+    if ((ttsPeak || micPeak) && nowMs - lastWaveMs.current > 380) {
       lastWaveMs.current = nowMs;
       const seedIdx = Math.floor(Math.random() * N_INNER);
       const key     = getToolKey(currentTool);
-      const acc     = key ? TOOL_ACC[key] : DEF_ACC;
+      const acc     = micPeak
+        ? new THREE.Color(0.7, 0.9, 1.0)    // mic = cool white-blue
+        : (key ? TOOL_ACC[key] : DEF_ACC);
 
-      actRef.current[seedIdx] = 0.75;
+      const amp = micPeak ? 0.65 : Math.min(1.0, audioState.ttsAmplitude * 1.5);
+      actRef.current[seedIdx] = amp;
       actColRef.current[seedIdx].copy(acc);
 
-      // Gather hop-1 neighbours (inline, O(N) — only runs every 500+ ms)
       const hop1 = [];
       for (let j = 0; j < N; j++) {
         if (j !== seedIdx && nd[seedIdx].pos.distanceTo(nd[j].pos) < THRESH)
@@ -368,9 +373,25 @@ export default function NeuralField({ phase, currentTool }) {
       }
       timers.current.push(setTimeout(() => {
         hop1.forEach((i) => {
-          actRef.current[i] = Math.max(actRef.current[i], 0.45);
+          actRef.current[i] = Math.max(actRef.current[i], amp * 0.60);
           actColRef.current[i].copy(acc);
         });
+        // Extra second hop for mic peaks (user voice → bigger ripple)
+        if (micPeak) {
+          const hop2 = new Set();
+          hop1.forEach((i) => {
+            for (let j = 0; j < N; j++) {
+              if (j !== i && actRef.current[j] < 0.35 &&
+                  nd[i].pos.distanceTo(nd[j].pos) < THRESH) hop2.add(j);
+            }
+          });
+          setTimeout(() => {
+            hop2.forEach((i) => {
+              actRef.current[i] = Math.max(actRef.current[i], amp * 0.35);
+              actColRef.current[i].copy(acc);
+            });
+          }, 120);
+        }
       }, 100));
     }
 
@@ -415,12 +436,13 @@ export default function NeuralField({ phase, currentTool }) {
       ? 0.65 + 0.35 * Math.sin(performance.now() * 0.0010)
       : 1.0;
 
-    // Audio amplitude scales connection brightness:
-    //   speaking → flare on loud moments   listening → pulse with user's voice
+    // Audio amplitude scales connection brightness (Jarvis-style):
+    //   speaking → strong flare with TTS amplitude
+    //   listening → dramatic pulse with user's voice energy
     const connAmpMult = audioState.isSpeaking
-      ? 0.6 + audioState.ttsAmplitude * 1.8
+      ? 0.5 + audioState.ttsAmplitude * 3.5     // bright flare when ARIA speaks
       : audioState.isListening
-        ? 0.4 + audioState.micAmplitude * 0.8
+        ? 0.3 + audioState.micAmplitude * 3.0   // breathes with user's voice
         : 1.0;
 
     for (let c = 0; c < cc.length; c++) {
@@ -462,10 +484,12 @@ export default function NeuralField({ phase, currentTool }) {
         sizeMult  = 1.4;   // and sit visually larger
       }
 
-      // Speaking: all nodes swell with the voice amplitude
+      // Nodes swell with amplitude — speaking grows from TTS, listening from mic
       const ampNodeMult = audioState.isSpeaking
-        ? 1.0 + audioState.ttsAmplitude * 0.4
-        : 1.0;
+        ? 1.0 + audioState.ttsAmplitude * 0.70
+        : audioState.isListening
+          ? 1.0 + audioState.micAmplitude * 0.55
+          : 1.0;
 
       // Activated nodes grow up to 1.5× their base size; twinkle + audio add shimmer
       _scl.setScalar(n.sz * sizeMult * (1.0 + a[i] * 0.50) * twinkle * ampNodeMult);

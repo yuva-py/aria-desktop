@@ -11,7 +11,7 @@
 
 'use strict';
 
-const { app, BrowserWindow, globalShortcut, screen } = require('electron');
+const { app, BrowserWindow, globalShortcut, screen, session } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const net  = require('net');
@@ -169,6 +169,21 @@ function registerHotkey() {
 
 // ── App lifecycle ─────────────────────────────────────────────────────────────
 app.on('ready', () => {
+  // ── Grant microphone + media permissions to the renderer ─────────────────
+  // Required for getUserMedia (mic reactivity) and the /stt pipeline.
+  // The Web Speech API also needs these permissions granted explicitly.
+  session.defaultSession.setPermissionRequestHandler(
+    (webContents, permission, callback) => {
+      const allowed = ['media', 'microphone', 'audioCapture', 'mediaKeySystem'];
+      callback(allowed.includes(permission));
+    }
+  );
+  session.defaultSession.setPermissionCheckHandler(
+    (webContents, permission) => {
+      return ['media', 'microphone', 'audioCapture'].includes(permission);
+    }
+  );
+
   startPythonServer();
   createWindow();
   registerHotkey();

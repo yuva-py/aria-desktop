@@ -1,0 +1,150 @@
+/* src/components/voice/VoiceStatus.css */
+
+.voice-status {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(8, 8, 14, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45),
+              0 0 0 1px rgba(255,255,255,0.04) inset;
+
+  user-select: none;
+  pointer-events: none; /* non-interactive overlay */
+}
+
+/* ── Pills ───────────────────────────────────────────────────────────────── */
+.vs-pills {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.vs-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px 3px 5px;
+  border-radius: 10px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.vs-pill--on {
+  color: var(--pill-color, #4af);
+  background: color-mix(in srgb, var(--pill-color, #4af) 12%, transparent);
+  border-color: color-mix(in srgb, var(--pill-color, #4af) 35%, transparent);
+}
+
+.vs-pill__icon {
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.8;
+}
+
+.vs-pill__label {
+  line-height: 1;
+}
+
+.vs-pill__dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  transition: background 0.25s;
+}
+.vs-pill--on .vs-pill__dot {
+  background: var(--pill-color, #4af);
+  box-shadow: 0 0 5px var(--pill-color, #4af);
+  animation: vs-dot-pulse 2s ease-in-out infinite;
+}
+
+@keyframes vs-dot-pulse {
+  0%, 100% { opacity: 1;   }
+  50%       { opacity: 0.5; }
+}
+
+/* ── Divider ─────────────────────────────────────────────────────────────── */
+.vs-divider {
+  width: 1px;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.10);
+  flex-shrink: 0;
+}
+
+/* ── Activity area ───────────────────────────────────────────────────────── */
+.vs-activity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  min-width: 70px;
+  max-width: 260px;
+}
+
+.vs-activity--listening {
+  color: #4aaff5;
+}
+.vs-activity--speaking {
+  color: rgba(0, 212, 255, 0.85);
+}
+.vs-activity--idle {
+  color: rgba(255, 255, 255, 0.22);
+}
+
+.vs-activity__label {
+  font-size: 11px;
+  white-space: nowrap;
+}
+.vs-activity__label--truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+/* ── Waveform bars (listening) ───────────────────────────────────────────── */
+.vs-wave {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.vs-wave span {
+  display: block;
+  width: 2px;
+  border-radius: 2px;
+  background: #4aaff5;
+  animation: vs-bar-wave 1.1s ease-in-out infinite;
+}
+
+.vs-wave span:nth-child(1) { height: 4px;  animation-delay: 0s;    }
+.vs-wave span:nth-child(2) { height: 8px;  animation-delay: 0.15s; }
+.vs-wave span:nth-child(3) { height: 12px; animation-delay: 0.05s; }
+.vs-wave span:nth-child(4) { height: 7px;  animation-delay: 0.20s; }
+.vs-wave span:nth-child(5) { height: 4px;  animation-delay: 0.10s; }
+
+@keyframes vs-bar-wave {
+  0%, 100% { transform: scaleY(0.4); opacity: 0.5; }
+  50%       { transform: scaleY(1.0); opacity: 1.0; }
+}

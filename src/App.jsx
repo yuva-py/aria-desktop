@@ -25,6 +25,7 @@ import SidebarHandle       from './components/sidebar/SidebarHandle';
 import Tier3Panel          from './components/Tier3Panel';
 import CursorLens          from './components/shared/CursorLens';
 import FloatingStatusChip  from './components/shared/FloatingStatusChip';
+import VoiceStatus         from './components/voice/VoiceStatus';
 
 import './styles/globals.css';
 import './App.css';
@@ -79,6 +80,9 @@ export default function App() {
 
       {/* ── z=15: Floating status chip (above orb, below topbar) ─────── */}
       <FloatingStatusChip />
+
+      {/* ── z=50: Voice status indicator (top-center) ────────────────── */}
+      <VoiceStatus />
 
       {/* ── z=10: DOM UI layer ───────────────────────────────────────────── */}
       <div className="aria-ui-layer">
